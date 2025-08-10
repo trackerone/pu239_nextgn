@@ -2,40 +2,18 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\TrackerController;
 
-Route::get('/', function () {
-    return view('home');
-});
+Route::get('/', fn() => view('home'));
+Route::get('/health', fn() => response('ok', 200));
 
 Route::get('/status', function () {
-    $app = config('app.name', 'Pu-239 NextGen');
-    $checks = [
-        'app' => 'OK',
-        'db' => 'UNKNOWN',
-        'migrations' => 'UNKNOWN',
-    ];
-
-    // DB connectivity check
-    try {
-        DB::select('SELECT 1');
-        $checks['db'] = 'Connected';
-    } catch (\Throwable $e) {
-        $checks['db'] = 'ERROR: ' . $e->getMessage();
-    }
-
-    // Migration table check
-    try {
-        $hasMigrations = DB::table('migrations')->count();
-        $checks['migrations'] = $hasMigrations >= 0 ? 'OK' : 'MISSING';
-    } catch (\Throwable $e) {
-        $checks['migrations'] = 'ERROR: ' . $e->getMessage();
-    }
-
-    return response()->json([
-        'app' => $app,
-        'status' => $checks,
-        'timestamp' => now()->toIso8601String(),
-    ]);
+    $checks = ['app' => 'OK', 'db' => 'UNKNOWN', 'migrations' => 'UNKNOWN'];
+    try { DB::select('SELECT 1'); $checks['db'] = 'Connected'; } catch (\Throwable $e) { $checks['db'] = 'ERROR'; }
+    try { $m = DB::table('migrations')->count(); $checks['migrations'] = $m>=0 ? 'OK':'MISSING'; } catch (\Throwable $e) { $checks['migrations'] = 'ERROR'; }
+    return response()->json(['app' => 'Laravel', 'status'=>$checks, 'timestamp'=>now()->toIso8601String()]);
 });
 
-Route::get('/health', fn() => response('ok', 200));
+// Tracker endpoints (support GET and POST)
+Route::match(['GET','POST'], '/announce', [TrackerController::class, 'announce']);
+Route::match(['GET','POST'], '/scrape',   [TrackerController::class, 'scrape']);
