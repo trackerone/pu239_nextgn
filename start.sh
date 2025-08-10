@@ -19,6 +19,10 @@ php artisan config:cache || true
 php artisan route:cache || true
 php artisan migrate --force || true
 
+# Fix permissions at runtime (in case overlay changed anything)
+chown -R www-data:www-data storage bootstrap/cache || true
+chmod -R 775 storage bootstrap/cache || true
+
 # Start PHP-FPM + Caddy
 php-fpm -D
 exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
