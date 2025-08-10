@@ -23,6 +23,12 @@ RUN apk add --no-cache libpq-dev libzip-dev zip git curl bash \
 
 # Kopiér app fra build-stages
 COPY --from=composer_stage /app /var/www/html
+# --- BEGIN overlay ---
+# Copy repo overrides (controllers, routes, views, etc.)
+# Everything you place under /overlay in the repo will overwrite the base Laravel app.
+COPY overlay/ /var/www/html/
+# --- END overlay ---
+
 COPY --from=node_stage /app/public/build /var/www/html/public/build 2>/dev/null || true
 
 # Caddy som webserver (simpelt og hurtigt)
