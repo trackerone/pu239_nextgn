@@ -47,6 +47,9 @@ COPY --from=node_stage /app/public/build /var/www/html/public/build
 # Everything under overlay/ in the repo will overwrite the base Laravel app
 COPY overlay/ /var/www/html/
 
+# --- Permissions for Laravel ---
+RUN chown -R www-data:www-data /var/www/html \
+ && chmod -R ug+rwX /var/www/html/storage /var/www/html/bootstrap/cache
 # Web server config + startup script
 COPY deploy/Caddyfile /etc/caddy/Caddyfile
 COPY start.sh /start.sh
