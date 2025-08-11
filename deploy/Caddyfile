@@ -1,6 +1,5 @@
 {
-	# Disable Caddy admin API
-	admin off
+    admin off
 }
 
 :{$PORT}
@@ -11,6 +10,6 @@ php_fastcgi 127.0.0.1:9000
 file_server
 
 @health {
-	path /health
+    path /health
 }
 respond @health 200
