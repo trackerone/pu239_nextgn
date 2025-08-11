@@ -16,7 +16,7 @@ RUN php artisan breeze:install blade --no-interaction
 FROM node:20-alpine AS node_stage
 WORKDIR /app
 COPY --from=composer_stage /app /app
-RUN npm ci && npm run build
+RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi && npm run build
 # Ensure build path exists even if nothing was produced (defensive)
 RUN mkdir -p /app/public/build
 
