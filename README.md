@@ -1,82 +1,53 @@
 # Pu-239 Next Generation
 
-This is the upgraded Pu-239 project, built with Laravel and packaged in Docker for easy hosting on [Render](https://render.com/).
+This is the upgraded Pu-239 project, built with Laravel and packaged in Docker for easy hosting on Render.
 
 ## 🌍 Online Demo
-**URL:** [https://pu239-nextgn.onrender.com](https://pu239-nextgn.onrender.com)  
-**Health-check:** [https://pu239-nextgn.onrender.com/health](https://pu239-nextgn.onrender.com/health)
-
----
+If deployed on Render, your URL will look like: `https://<service>.onrender.com`  
+Health-check: `/health`
 
 ## 🚀 Technology Stack
-- **Laravel** (PHP 8.3)
-- **Docker** (PHP-FPM + Caddy web server)
-- **PostgreSQL** (Render free plan for development/testing)
-- **Render Free tier** (750 hours/month, 512 MB RAM)
-
----
+- Laravel (PHP 8.3)
+- Docker (PHP-FPM + Caddy web server)
+- PostgreSQL (Render free plan for development/testing)
+- Render Free tier (750 hours/month, 512 MB RAM)
 
 ## 📦 Project Structure
-├── Dockerfile # Builds Laravel + PHP + Caddy
-├── render.yaml # Render config (web + db)
-├── start.sh # Starts the app + runs DB migrations
+```
+├── Dockerfile
+├── render.yaml          # optional if you use it
+├── start.sh
 ├── deploy/
-│ └── Caddyfile # Caddy web server config
-└── README.md
-
-yaml
-Kopiér
-Rediger
-
----
+│   └── Caddyfile
+└── overlay/
+    ├── routes/web.php
+    ├── app/
+    │   ├── Http/Controllers/TrackerController.php
+    │   ├── Http/Middleware/VerifyCsrfToken.php
+    │   └── Services/Bencode.php
+    ├── config/tracker.php
+    ├── database/migrations/2025_08_10_000000_create_peers_table.php
+    ├── database/migrations/2025_08_10_000001_create_sessions_table.php
+    └── resources/views/...
+```
 
 ## 🔑 First-time Setup on Render
-1. **Connect the repository to Render**
-   - Log in to Render → New + → **Web Service**
-   - Select this repository, choose **Free** plan
-   - Render reads `render.yaml` and provisions both the web service and the database
+1. Connect repo → New → Web Service (Free) → Deploy.
+2. Set env vars:
+   - `APP_URL=https://<your>.onrender.com`
+   - `SESSION_DRIVER=file`
+   - Tracker toggles (optional):
+     - `TRACKER_MODE=embedded` (default)
+     - `EXTERNAL_ANNOUNCE_URL=udp://your-udp-host:6969/announce`
+3. Manual Deploy → Clear build cache & Redeploy.
 
-2. **Environment variables**
-   - Render automatically sets DB variables
-   - Set `APP_URL=https://pu239-nextgn.onrender.com`
-   - Set `APP_ENV=production` (if not already set)
-
-3. **Deploy**
-   - First deployment takes 1-2 minutes
-   - When finished → visit the provided URL
-
----
+## 🧪 Tracker Modes
+- **embedded**: HTTP `/announce` and `/scrape` handled by this app.
+- **external**: App redirects to `EXTERNAL_ANNOUNCE_URL` (HTTP), or returns a bencoded hint for UDP.
 
 ## 🖥 Local Development
-### Requirements
-- Docker + Docker Compose
-- Node.js (for building assets)
-- Composer
-
-### Run locally
+Build and run:
 ```bash
-# Clone repository
-git clone https://github.com/trackerone/pu239_nextgn.git
-cd pu239_nextgn
-
-# Build and start container
 docker build -t pu239 .
 docker run -p 8080:8080 pu239
-
-# Laravel will now run at http://localhost:8080
-Environment file
-Create .env in the project root (use .env.example as a template).
-For local Postgres:
-
-bash
-Kopiér
-Rediger
-docker run --name pu239-db -e POSTGRES_PASSWORD=secret -e POSTGRES_DB=pu239 -p 5432:5432 -d postgres
-Then set DB_HOST=host.docker.internal in .env.
-
-📋 Notes
-Free Render instances sleep after inactivity → first request may be slow (cold start)
-
-Postgres on free plan is for development only (limited resources)
-
-For production → upgrade instance + database
+```

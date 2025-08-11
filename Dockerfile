@@ -29,13 +29,10 @@ FROM php:8.3-fpm-alpine
 WORKDIR /var/www/html
 
 # System deps (incl. Caddy) + PHP extensions for Laravel + Postgres
-RUN apk add --no-cache \
-    git curl bash zip unzip caddy \
-    libpq-dev libzip-dev icu-dev oniguruma-dev
+RUN apk add --no-cache         git curl bash zip unzip caddy         libpq-dev libzip-dev icu-dev oniguruma-dev
 
 # PHP extensions
-RUN docker-php-ext-configure intl \
- && docker-php-ext-install -j$(nproc) pdo pdo_pgsql mbstring intl zip opcache
+RUN docker-php-ext-configure intl      && docker-php-ext-install -j$(nproc) pdo pdo_pgsql mbstring intl zip opcache
 
 # Copy app from composer stage
 COPY --from=composer_stage /app /var/www/html
@@ -47,18 +44,12 @@ COPY --from=node_stage /app/public/build /var/www/html/public/build
 # Everything under overlay/ in the repo will overwrite the base Laravel app
 COPY overlay/ /var/www/html/
 
-# --- Permissions for Laravel ---
-RUN chown -R www-data:www-data /var/www/html \
- && chmod -R ug+rwX /var/www/html/storage /var/www/html/bootstrap/cache
 # Web server config + startup script
 COPY deploy/Caddyfile /etc/caddy/Caddyfile
 COPY start.sh /start.sh
 
 # Permissions and small niceties
-RUN chmod +x /start.sh \
- && addgroup -g 1000 www \
- && adduser -G www -g www -s /bin/sh -D www \
- && chown -R www:www /var/www/html
+RUN chmod +x /start.sh      && chown -R www-data:www-data /var/www/html      && chmod -R ug+rwX /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Avoid CRLF issues if file was edited on Windows (safe no-op otherwise)
 RUN apk add --no-cache dos2unix && dos2unix /start.sh || true

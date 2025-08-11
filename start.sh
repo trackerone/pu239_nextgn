@@ -12,7 +12,7 @@ mkdir -p bootstrap/cache
 echo "[startup] Fixing permissions for Laravel (storage/ & bootstrap/cache)…"
 chown -R www-data:www-data storage bootstrap/cache || true
 chmod -R 775 storage bootstrap/cache || true
-# sikre at nye filer/mapper også bliver skrivbare for gruppe (www-data)
+# ensure new files/dirs are writable for group
 find storage -type d -exec chmod 775 {} \; || true
 find storage -type f -exec chmod 664 {} \; || true
 find bootstrap/cache -type d -exec chmod 775 {} \; || true
