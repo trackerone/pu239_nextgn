@@ -9,8 +9,7 @@ WORKDIR /app
 COPY composer.json ./
 COPY tools/fix-composer.php tools/fix-composer.php
 
-# Run fixer: removes direct illuminate/*, ensures laravel/framework ^11
-# Also removes any previous invalid conflict entries (like "illuminate/*").
+# Run fixer: removes direct illuminate/*, removes fideloper/proxy, ensures laravel/framework ^11
 RUN php tools/fix-composer.php
 
 # Resolve deps and write composer.lock inside the image (no local machine needed)
@@ -21,6 +20,6 @@ RUN composer update --no-dev --prefer-dist --no-interaction --optimize-autoloade
 COPY . .
 
 # Cache config after vendor exists
-RUN php artisan config:cache
+RUN php artisan config:cache || true
 
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]

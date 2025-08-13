@@ -1,10 +1,12 @@
 <?php
-// tools/fix-composer.php (v3)
-// - Remove direct illuminate/* from require + require-dev
-// - Ensure laravel/framework ^11.0
-// - Remove invalid conflict wildcard entries like "illuminate/*" if present
-// - Idempotent: safe to run multiple times
-
+/**
+ * tools/fix-composer.php (v4)
+ * - Remove direct illuminate/* from require + require-dev
+ * - Remove legacy package fideloper/proxy (incompatible with Laravel 11)
+ * - Ensure laravel/framework ^11.0
+ * - Remove invalid conflict entries
+ * - Idempotent (safe to run multiple times)
+ */
 $file = __DIR__ . '/../composer.json';
 if (!file_exists($file)) {
     fwrite(STDERR, "composer.json not found at {$file}\n");
@@ -27,9 +29,26 @@ $stripIlluminate = function(array &$section) use (&$changed) {
     }
 };
 
+$removePackages = function(array &$section, array $pkgs) use (&$changed) {
+    if (!is_array($section)) return;
+    foreach ($pkgs as $pkg) {
+        if (isset($section[$pkg])) {
+            unset($section[$pkg]);
+            $changed = true;
+        }
+    }
+};
+
+// 1) Strip illuminate/* from require and require-dev
 if (isset($json['require'])) $stripIlluminate($json['require']);
 if (isset($json['require-dev'])) $stripIlluminate($json['require-dev']);
 
+// 2) Remove legacy packages incompatible with Laravel 11
+$legacy = ['fideloper/proxy'];
+if (isset($json['require'])) $removePackages($json['require'], $legacy);
+if (isset($json['require-dev'])) $removePackages($json['require-dev'], $legacy);
+
+// 3) Ensure laravel/framework ^11.0
 if (!isset($json['require'])) $json['require'] = [];
 if (!isset($json['require']['laravel/framework'])) {
     $json['require']['laravel/framework'] = '^11.0';
@@ -42,13 +61,12 @@ if (!isset($json['require']['laravel/framework'])) {
     }
 }
 
-// Clean up invalid conflict wildcard if present
+// 4) Clean invalid conflict entries
 if (isset($json['conflict']) && is_array($json['conflict'])) {
     if (array_key_exists('illuminate/*', $json['conflict'])) {
         unset($json['conflict']['illuminate/*']);
         $changed = true;
     }
-    // If conflict becomes empty, remove it
     if (empty($json['conflict'])) {
         unset($json['conflict']);
         $changed = true;
