@@ -1,12 +1,12 @@
 FROM php:8.2-cli
 
-# Install system deps needed by Composer (git, unzip) and PHP zip extension
+# System deps + PHP extensions
 RUN apt-get update \
     && apt-get install -y --no-install-recommends git unzip libzip-dev \
     && docker-php-ext-install zip pdo_mysql \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Composer
+# Composer
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
     && rm composer-setup.php
@@ -16,18 +16,25 @@ ENV COMPOSER_ALLOW_SUPERUSER=1 \
 
 WORKDIR /app
 
-# Copy composer.json + fixer and sanitize before resolving deps
-COPY composer.json ./
-COPY tools/fix-composer.php tools/fix-composer.php
-RUN php tools/fix-composer.php
-
-# Resolve deps and write composer.lock inside the image (no local machine needed)
-RUN composer update --no-dev --prefer-dist --no-interaction --optimize-autoloader
-
-# Bring in the rest of the app
+# Copy whole repo early (we need to detect root dir)
 COPY . .
 
-# Cache config after vendor exists (don't fail build if env not set yet)
-RUN php artisan config:cache || true
+# Tools
+COPY tools/detect-root.sh /app/tools/detect-root.sh
+COPY tools/fix-composer.php /app/tools/fix-composer.php
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+# Detect root (handles subfolders) and fix composer.json there
+RUN ROOT=$(/app/tools/detect-root.sh) \
+    && echo "[build] Detected root: $ROOT" \
+    && cd "$ROOT" \
+    && if [ -f composer.json ]; then php /app/tools/fix-composer.php; else echo "[build] No composer.json found in $ROOT"; fi \
+    && if [ -f composer.json ]; then composer update --no-dev --prefer-dist --no-interaction --optimize-autoloader; fi \
+    && true
+
+# Cache config if artisan exists (don't fail build otherwise)
+RUN ROOT=$(/app/tools/detect-root.sh) \
+    && cd "$ROOT" \
+    && if [ -f artisan ]; then php artisan config:cache || true; fi
+
+EXPOSE 8000
+ENTRYPOINT ["/app/tools/entrypoint.sh"]
