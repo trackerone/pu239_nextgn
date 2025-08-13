@@ -14,7 +14,7 @@ WORKDIR /app
 COPY . .
 
 # Install PHP deps
-RUN composer install --no-dev --optimize-autoloader
+RUN composer update --no-dev --optimize-autoloader
 
 # Copy .env.example if .env does not exist
 RUN [ -f .env ] || cp .env.example .env
