@@ -1,13 +1,17 @@
 <?php
-// tools/fix-composer.php
-// Web-only safe fixer for composer.json
+// tools/fix-composer.php (v3)
+// - Remove direct illuminate/* from require + require-dev
+// - Ensure laravel/framework ^11.0
+// - Remove invalid conflict wildcard entries like "illuminate/*" if present
+// - Idempotent: safe to run multiple times
+
 $file = __DIR__ . '/../composer.json';
 if (!file_exists($file)) {
     fwrite(STDERR, "composer.json not found at {$file}\n");
     exit(1);
 }
 $json = json_decode(file_get_contents($file), true);
-if ($json === null) {
+if (!is_array($json)) {
     fwrite(STDERR, "Failed to parse composer.json\n");
     exit(1);
 }
@@ -16,7 +20,7 @@ $changed = false;
 $stripIlluminate = function(array &$section) use (&$changed) {
     if (!is_array($section)) return;
     foreach (array_keys($section) as $pkg) {
-        if (str_starts_with($pkg, 'illuminate/')) {
+        if (strpos($pkg, 'illuminate/') === 0) {
             unset($section[$pkg]);
             $changed = true;
         }
@@ -31,17 +35,24 @@ if (!isset($json['require']['laravel/framework'])) {
     $json['require']['laravel/framework'] = '^11.0';
     $changed = true;
 } else {
-    $current = $json['require']['laravel/framework'];
+    $current = (string)$json['require']['laravel/framework'];
     if (!preg_match('/(^|\s)(\^|~)?11(\.|$)/', $current)) {
         $json['require']['laravel/framework'] = '^11.0';
         $changed = true;
     }
 }
 
-if (!isset($json['conflict'])) $json['conflict'] = [];
-if (!isset($json['conflict']['illuminate/*']) || $json['conflict']['illuminate/*'] !== '>=12.0') {
-    $json['conflict']['illuminate/*'] = '>=12.0';
-    $changed = true;
+// Clean up invalid conflict wildcard if present
+if (isset($json['conflict']) && is_array($json['conflict'])) {
+    if (array_key_exists('illuminate/*', $json['conflict'])) {
+        unset($json['conflict']['illuminate/*']);
+        $changed = true;
+    }
+    // If conflict becomes empty, remove it
+    if (empty($json['conflict'])) {
+        unset($json['conflict']);
+        $changed = true;
+    }
 }
 
 if ($changed) {

@@ -9,20 +9,18 @@ WORKDIR /app
 COPY composer.json ./
 COPY tools/fix-composer.php tools/fix-composer.php
 
-# Run fixer: removes direct illuminate/*, ensures laravel/framework ^11, sets conflict rule
+# Run fixer: removes direct illuminate/*, ensures laravel/framework ^11
+# Also removes any previous invalid conflict entries (like "illuminate/*").
 RUN php tools/fix-composer.php
 
 # Resolve deps and write composer.lock inside the image (no local machine needed)
 ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer update --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
-# Cache vendor layer now
-# (Optional) if you want to copy lock out, you can do multi-stage. For Render, this is fine.
-# Now bring in the rest of the app
+# Bring in the rest of the app
 COPY . .
 
 # Cache config after vendor exists
 RUN php artisan config:cache
 
-# Dev-friendly default CMD. Adjust to your runtime needs.
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
