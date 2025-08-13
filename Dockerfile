@@ -21,8 +21,11 @@ COPY tools/entrypoint.sh /app/tools/entrypoint.sh
 # Ensure scripts are executable
 RUN chmod +x /app/tools/*.sh
 
-# Detect root and run composer there (if composer.json exists)
-RUN ROOT=$(/bin/sh /app/tools/detect-root.sh)         && echo "[build] Detected root: $ROOT"         && cd "$ROOT"         && if [ -f composer.json ]; then composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader; fi         && true
+# Detect root and run composer there:
+# - If composer.lock exists -> composer install
+# - Else -> composer update (to generate lock) 
+# Add extra debug output if it fails.
+RUN set -eux;         ROOT=$(/bin/sh /app/tools/detect-root.sh);         echo "[build] Detected root: $ROOT";         cd "$ROOT";         if [ -f composer.json ]; then           if [ -f composer.lock ]; then             echo "[build] composer.lock found -> composer install";             composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader || (composer --version; php -v; ls -la; cat composer.json; exit 1);           else             echo "[build] composer.lock missing -> composer update";             composer update --no-dev --prefer-dist --no-interaction --optimize-autoloader || (composer --version; php -v; ls -la; cat composer.json; exit 1);           fi;         else           echo "[build] No composer.json found in $ROOT";         fi;         true
 
 EXPOSE 8000
 ENTRYPOINT ["/bin/sh", "/app/tools/entrypoint.sh"]

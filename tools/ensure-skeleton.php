@@ -1,5 +1,5 @@
     <?php
-    // tools/ensure-skeleton.php (v9, reused)
+    // tools/ensure-skeleton.php (from v9)
     function mkdir_p($dir) { if (!is_dir($dir)) mkdir($dir, 0777, true); }
     $root = getcwd();
     mkdir_p($root . '/bootstrap/cache');

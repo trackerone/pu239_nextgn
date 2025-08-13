@@ -7,7 +7,7 @@
     # Ensure skeleton + writable dirs
     php /app/tools/ensure-skeleton.php
 
-    # Ensure .env exists
+    # Ensure .env
     if [ ! -f ".env" ]; then
       if [ -f ".env.example" ]; then
         cp .env.example .env
@@ -21,12 +21,8 @@ APP_DEBUG=false
 APP_URL=${RENDER_EXTERNAL_URL:-http://localhost}
 LOG_CHANNEL=stderr
 LOG_LEVEL=debug
-
-# Default session/cache
 SESSION_DRIVER=file
 CACHE_STORE=file
-
-# If you use DB, set these in Render dashboard
 DB_CONNECTION=mysql
 DB_HOST=
 DB_PORT=3306
@@ -36,30 +32,18 @@ DB_PASSWORD=
 EOF
       fi
     fi
+    # Force log to stderr
+    if ! grep -q '^LOG_CHANNEL=' .env; then echo 'LOG_CHANNEL=stderr' >> .env; else sed -i 's/^LOG_CHANNEL=.*/LOG_CHANNEL=stderr/' .env; fi
+    # Generate key if missing
+    if ! grep -q '^APP_KEY=base64:' .env; then php artisan key:generate --force || true; fi
 
-    # Force LOG_CHANNEL to stderr for Render logs
-    if ! grep -q '^LOG_CHANNEL=' .env; then
-      echo 'LOG_CHANNEL=stderr' >> .env
-    else
-      sed -i 's/^LOG_CHANNEL=.*/LOG_CHANNEL=stderr/' .env
-    fi
-
-    # Generate APP_KEY if missing
-    if ! grep -q '^APP_KEY=base64:' .env; then
-      echo "[entrypoint] Generating APP_KEY"
-      php artisan key:generate --force || true
-    fi
-
-    # Ensure writable dirs again
+    # Permissions + caches
     mkdir -p bootstrap/cache storage/framework/{cache,sessions,views}
     chmod -R 777 bootstrap/cache storage || true
-
-    # Clear & rebuild caches (avoid stale config)
     if [ -f "artisan" ]; then
       php artisan config:clear || true
       php artisan route:clear || true
       php artisan view:clear || true
-
       php artisan config:cache || true
       php artisan route:cache || true
       php artisan view:cache || true
