@@ -1,27 +1,8 @@
-FROM php:8.3-cli
-
-# Install system dependencies
-RUN apt-get update && apt-get install -y unzip git libzip-dev zip libpq-dev libonig-dev libxml2-dev \
- && docker-php-ext-install pdo pdo_pgsql zip
-
-# Install Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-# Set working directory
+FROM php:8.2-cli
 WORKDIR /app
-
-# Copy project
 COPY . .
-
-# Install PHP deps
-RUN composer update --no-dev --optimize-autoloader
-
-# Copy .env.example if .env does not exist
-RUN [ -f .env ] || cp .env.example .env
-
-# Clear caches at runtime
-CMD ["php", "artisan", "config:clear"] && \
-    php artisan migrate --force && \
-    php artisan serve --host=0.0.0.0 --port=8000
-
-EXPOSE 8000
+RUN apt-get update && apt-get install -y unzip sqlite3
+RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+RUN php composer-setup.php && mv composer.phar /usr/local/bin/composer
+RUN composer install
+CMD ["php", "artisan", "serve", "--host=0.0.0.0"]
