@@ -5,3 +5,9 @@ services:
     plan: free
     dockerfilePath: ./Dockerfile
     autoDeploy: true
+    #!/bin/bash
+build:
+  command: ./build.sh
+
+start:
+  command: ./start.sh
