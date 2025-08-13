@@ -15,18 +15,14 @@ COPY . .
 
 # Tools
 COPY tools/detect-root.sh /app/tools/detect-root.sh
-COPY tools/fix-composer.php /app/tools/fix-composer.php
 COPY tools/ensure-skeleton.php /app/tools/ensure-skeleton.php
 COPY tools/entrypoint.sh /app/tools/entrypoint.sh
 
 # Ensure scripts are executable
 RUN chmod +x /app/tools/*.sh
 
-# Detect root and run composer there
-RUN ROOT=$(/bin/sh /app/tools/detect-root.sh)         && echo "[build] Detected root: $ROOT"         && cd "$ROOT"         && if [ -f composer.json ]; then php /app/tools/fix-composer.php; else echo "[build] No composer.json found in $ROOT"; fi         && if [ -f composer.json ]; then composer update --no-dev --prefer-dist --no-interaction --optimize-autoloader; fi         && true
-
-# Ensure minimal skeleton & writable dirs; cache config if artisan exists
-RUN ROOT=$(/bin/sh /app/tools/detect-root.sh)         && cd "$ROOT"         && php /app/tools/ensure-skeleton.php         && if [ -f artisan ]; then php artisan config:cache || true; fi
+# Detect root and run composer there (if composer.json exists)
+RUN ROOT=$(/bin/sh /app/tools/detect-root.sh)         && echo "[build] Detected root: $ROOT"         && cd "$ROOT"         && if [ -f composer.json ]; then composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader; fi         && true
 
 EXPOSE 8000
 ENTRYPOINT ["/bin/sh", "/app/tools/entrypoint.sh"]
