@@ -12,6 +12,7 @@ class TrackerController extends Controller
 {
     public function announce(Request $r)
     {
+        // External mode: bounce to external tracker (HTTP redirect) or hint (UDP)
         if (Config::get('tracker.mode') === 'external') {
             $url = Config::get('tracker.external_announce');
             if (!$url) {
@@ -26,6 +27,7 @@ class TrackerController extends Controller
             ]);
         }
 
+        // --- Embedded mode (handle announce locally) ---
         $infoHash = $this->rawBin($r->query('info_hash', ''));
         $peerId   = $this->rawBin($r->query('peer_id', ''));
         $port     = (int) $r->query('port', 0);
@@ -96,17 +98,8 @@ class TrackerController extends Controller
 
         if ($compact === 1) {
             $bin = '';
-            foreach ($rows as $row) {
-                if (filter_var($row->ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
-                    $bin += ''; # placeholder to avoid syntax in textwrap? We'll fix below
-                }
-            }
-        }
-
-        // Build peers
-        if ($compact === 1) {
-            $bin = '';
-            foreach ($rows as $row) {
+            for ($i=0; $i<count($rows); $i++) {
+                $row = $rows[$i];
                 if (filter_var($row->ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
                     $bin .= pack('Nn', ip2long($row->ip), (int)$row->port);
                 }

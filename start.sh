@@ -1,21 +1,24 @@
 #!/usr/bin/env bash
 set -e
 
+# --- Paths ---
 APP_DIR="/var/www/html"
 cd "$APP_DIR"
 
-echo "[startup] Ensure required dirs…"
-mkdir -p storage/framework/{cache,sessions,views} bootstrap/cache
+echo "[startup] Ensuring required directories exist…"
+mkdir -p storage/framework/{cache,sessions,views}
+mkdir -p bootstrap/cache
 
-echo "[startup] Fixing permissions…"
+echo "[startup] Fixing permissions for Laravel (storage/ & bootstrap/cache)…"
 chown -R www-data:www-data storage bootstrap/cache || true
 chmod -R 775 storage bootstrap/cache || true
+# ensure new files/dirs are writable for group
 find storage -type d -exec chmod 775 {} \; || true
 find storage -type f -exec chmod 664 {} \; || true
 find bootstrap/cache -type d -exec chmod 775 {} \; || true
 find bootstrap/cache -type f -exec chmod 664 {} \; || true
 
-# Wait for Postgres if configured
+# --- Optional: wait for Postgres if configured ---
 if [ -n "${DB_HOST}" ] && [ "${DB_CONNECTION}" = "pgsql" ]; then
   echo "[startup] Waiting for Postgres at ${DB_HOST}:${DB_PORT:-5432}…"
   for i in {1..60}; do
@@ -27,21 +30,23 @@ if [ -n "${DB_HOST}" ] && [ "${DB_CONNECTION}" = "pgsql" ]; then
   done
 fi
 
-echo "[startup] Clear caches…"
+echo "[startup] Clearing stale caches…"
 php artisan config:clear || true
 php artisan route:clear  || true
 php artisan view:clear   || true
 
-echo "[startup] Generate app key…"
+echo "[startup] Generating app key (idempotent)…"
 php artisan key:generate --force || true
 
-echo "[startup] Run migrations…"
+echo "[startup] Running migrations…"
 php artisan migrate --force || true
 
-echo "[startup] Rebuild caches…"
+echo "[startup] Rebuilding caches…"
 php artisan config:cache || true
 php artisan route:cache  || true
 
+# Health file (static check for load balancer /health)
+echo "[startup] Ensuring /public/health exists…"
 echo "ok" > public/health || true
 chown www-data:www-data public/health || true
 

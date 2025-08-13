@@ -4,11 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\TrackerController;
 
-// Breeze keeps the default welcome page; we point '/' to it
-Route::get('/', function () {
-    return view('welcome');
-});
-
+Route::get('/', fn() => view('home'));
 Route::get('/health', fn() => response('ok', 200));
 
 Route::get('/status', function () {

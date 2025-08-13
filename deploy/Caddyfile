@@ -1,8 +1,6 @@
-{
-    admin off
-}
+{$PORT}
 
-:{$PORT}
+admin off
 
 encode zstd gzip
 root * /var/www/html/public
@@ -10,6 +8,6 @@ php_fastcgi 127.0.0.1:9000
 file_server
 
 @health {
-    path /health
+  path /health
 }
 respond @health 200
