@@ -1,6 +1,5 @@
 #!/bin/sh
 set -e
-# Find Laravel root (dir with artisan + composer.json), search depth up to 3
 if [ -f "artisan" ] && [ -f "composer.json" ]; then
   pwd
   exit 0

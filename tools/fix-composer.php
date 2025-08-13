@@ -1,5 +1,5 @@
 <?php
-// tools/fix-composer.php (v7)
+// tools/fix-composer.php (v8)
 $file = getcwd() . '/composer.json';
 if (!file_exists($file)) { fwrite(STDERR, "composer.json not found in ".getcwd()."\n"); exit(0); }
 $json = json_decode(file_get_contents($file), true);
