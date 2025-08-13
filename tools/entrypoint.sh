@@ -3,8 +3,18 @@ set -e
 ROOT=$(/bin/sh /app/tools/detect-root.sh)
 cd "$ROOT"
 echo "[entrypoint] Using root: $ROOT"
-# Ensure minimal skeleton if missing
+
+# Ensure skeleton + writable dirs
 php /app/tools/ensure-skeleton.php
+
+# Try to optimize/caches if artisan exists (but don't fail hard)
+if [ -f "artisan" ]; then
+  mkdir -p bootstrap/cache storage/framework/{cache,sessions,views}
+  chmod -R 777 bootstrap/cache storage || true
+  php artisan config:cache || true
+  php artisan route:cache || true
+  php artisan view:cache || true
+fi
 
 if [ -f "artisan" ] && [ -f "bootstrap/app.php" ]; then
   echo "[entrypoint] Laravel detected. Starting server..."
