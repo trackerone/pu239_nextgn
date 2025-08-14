@@ -10,6 +10,13 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"   
 
 WORKDIR /app
 
+# efter composer install/update:
+RUN ROOT=$(/bin/sh /app/tools/detect-root.sh) \
+ && cd "$ROOT" \
+ && php /app/tools/ensure-skeleton.php \
+ && mkdir -p bootstrap/cache storage/app storage/framework/{cache,data,sessions,views} storage/logs \
+ && true
+
 # Bring in project files
 COPY . .
 
