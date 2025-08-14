@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
+// Health endpoint for uptime checks
+Route::get('/healthz', function () {
+    return response('OK', 200);
 });
