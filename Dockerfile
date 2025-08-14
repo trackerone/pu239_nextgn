@@ -17,12 +17,13 @@ COPY . .
 # === KRITISK TRIN: hvis der ikke er et Laravel-skelet, så hent ét ===
 # (Det fjerner dependency-konflikten.)
 RUN set -eux; \
-    if [ ! -f bootstrap/app.php ]; then \
-      composer create-project laravel/laravel:^11.0 /tmp/skeleton --no-dev --prefer-dist --no-interaction; \
-      cp -a /tmp/skeleton/. /app/; \
-    fi; \
-    composer require laravel/tinker:^2.8 fruitcake/laravel-cors:^3.0 --no-dev --prefer-dist --no-interaction; \
-    composer dump-autoload -o
+  if [ ! -f bootstrap/app.php ]; then \
+    composer create-project laravel/laravel:^11.0 /tmp/skeleton --prefer-dist --no-interaction; \
+    cp -a /tmp/skeleton/. /app/; \
+  fi; \
+  composer require laravel/tinker:^2.8 fruitcake/laravel-cors:^3.0 --prefer-dist --no-interaction --no-plugins --no-scripts; \
+  composer dump-autoload -o
+
 
 # Sørg for cache-mappe (hvis ikke oprettet af skeleton)
 RUN mkdir -p bootstrap/cache && touch bootstrap/cache/.gitkeep
