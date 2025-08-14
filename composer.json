@@ -2,11 +2,12 @@
   "name": "pu239/nxtgn",
   "description": "Pu-239 Next Generation Tracker",
   "type": "project",
+  "license": "MIT",
   "require": {
     "php": "^8.2",
     "laravel/framework": "^11.0",
-    "laravel/tinker": "^2.10",
-    "fruitcake/laravel-cors": "^2.3"
+    "laravel/tinker": "^2.8",
+    "fruitcake/laravel-cors": "^3.0"
   },
   "autoload": {
     "psr-4": {
@@ -20,5 +21,6 @@
     "post-create-project-cmd": [
       "@php artisan key:generate"
     ]
-  }
+  },
+  "prefer-stable": true
 }
