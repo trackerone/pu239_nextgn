@@ -1,68 +1,111 @@
 <?php
+// tools/ensure-skeleton.php
+declare(strict_types=1);
 
-// Minimal Laravel 11 skeleton generator for containers
-$base = dirname(__DIR__);
+$root = rtrim(getenv('APP_ROOT') ?: '/app', '/');
 
-// dirs
-@mkdir("$base/bootstrap/cache", 0775, true);
-@mkdir("$base/public", 0775, true);
-@mkdir("$base/routes", 0775, true);
-@mkdir("$base/storage/framework/{cache,data,sessions,views}", 0775, true);
+function put($path, $contents) {
+    $dir = dirname($path);
+    if (!is_dir($dir)) mkdir($dir, 0775, true);
+    if (!file_exists($path)) file_put_contents($path, $contents);
+}
 
-// bootstrap/app.php (Laravel 11 style)
-$appPhp = <<<'PHP'
+function ensureDir($path) {
+    if (!is_dir($path)) mkdir($path, 0775, true);
+    @chmod($path, 0775);
+}
+
+// 1) bootstrap/app.php
+$bootstrapApp = <<<'PHP'
 <?php
 
 use Illuminate\Foundation\Application;
-use Illuminate\Foundation\Configuration\Middleware;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         commands: __DIR__.'/../routes/console.php',
-        health: '/up'
+        // api: __DIR__.'/../routes/api.php',
     )
-    ->withMiddleware(function (Middleware $middleware) {
-        // Place global middleware config here if needed
+    ->withMiddleware(function (\Illuminate\Foundation\Configuration\Middleware $middleware) {
+        //
     })
-    ->withExceptions(function ($exceptions) {
-        // Custom exception rendering if needed
-    })
-    ->create();
+    ->withExceptions(function (\Illuminate\Foundation\Configuration\Exceptions $exceptions) {
+        //
+    })->create();
 PHP;
-if (!file_exists("$base/bootstrap/app.php")) {
-    file_put_contents("$base/bootstrap/app.php", $appPhp);
-}
+put("$root/bootstrap/app.php", $bootstrapApp);
 
-// public/index.php
+// 2) public/index.php
 $publicIndex = <<<'PHP'
 <?php
 
 define('LARAVEL_START', microtime(true));
-
 require __DIR__.'/../vendor/autoload.php';
 
 $app = require __DIR__.'/../bootstrap/app.php';
-
 $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
 
 $response = $kernel->handle(
     $request = Illuminate\Http\Request::capture()
-);
+)->send();
 
-$response->send();
 $kernel->terminate($request, $response);
 PHP;
-if (!file_exists("$base/public/index.php")) {
-    file_put_contents("$base/public/index.php", $publicIndex);
+put("$root/public/index.php", $publicIndex);
+
+// 3) bootstrap/cache + writables
+ensureDir("$root/bootstrap/cache");
+ensureDir("$root/storage");
+ensureDir("$root/storage/framework");
+ensureDir("$root/storage/framework/cache");
+ensureDir("$root/storage/framework/views");
+ensureDir("$root/storage/framework/sessions");
+@chmod("$root/storage", 0775);
+
+// 4) routes/web.php (fallback "it works")
+put("$root/routes/web.php", "<?php\nuse Illuminate\\Support\\Facades\\Route;\nRoute::get('/', fn() => view('welcome'));\n");
+
+// 5) resources/views/welcome.blade.php
+$welcome = <<<'BLADE'
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PU-239 NextGN</title></head>
+<body style="font-family:system-ui,Segoe UI,Arial,sans-serif;padding:3rem">
+<h1>PU-239 NextGN is running 🎉</h1>
+<p>Environment: {{ app()->environment() }} — Laravel {{ app()->version() }}</p>
+</body></html>
+BLADE;
+put("$root/resources/views/welcome.blade.php", $welcome);
+
+// 6) .env.example + .env
+$envExample = <<<'ENV'
+APP_NAME=PU239
+APP_ENV=production
+APP_KEY=
+APP_DEBUG=false
+APP_URL=${APP_URL:-http://localhost}
+LOG_CHANNEL=stack
+LOG_LEVEL=info
+ENV;
+put("$root/.env.example", $envExample);
+
+$envPath = "$root/.env";
+if (!file_exists($envPath)) {
+    @copy("$root/.env.example", $envPath);
 }
 
-// routes/web.php (simple OK and healthz)
-if (!file_exists("$base/routes/web.php")) {
-    file_put_contents("$base/routes/web.php", "<?php\nuse Illuminate\Support\Facades\Route;\nRoute::get('/', fn() => 'OK');\nRoute::get('/healthz', fn() => response('OK', 200));\n");
+// 7) Generate APP_KEY if empty
+$env = file_exists($envPath) ? file_get_contents($envPath) : '';
+if (strpos($env, 'APP_KEY=') !== false && preg_match('/^APP_KEY\s*=\s*$/m', $env)) {
+    $artisan = "$root/artisan";
+    if (file_exists($artisan)) {
+        @passthru("php $artisan key:generate --force 2>/dev/null");
+    } else {
+        $key = 'base64:'.base64_encode(random_bytes(32));
+        $env = preg_replace('/^APP_KEY\s*=\s*$/m', "APP_KEY={$key}", $env);
+        file_put_contents($envPath, $env);
+    }
 }
 
-// routes/console.php (empty stub)
-if (!file_exists("$base/routes/console.php")) {
-    file_put_contents("$base/routes/console.php", "<?php\n");
-}
+echo "[ensure] skeleton ensured\n";
