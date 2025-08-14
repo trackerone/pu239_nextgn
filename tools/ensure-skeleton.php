@@ -1,65 +1,82 @@
-    <?php
-    // tools/ensure-skeleton.php (from v9)
-    function mkdir_p($dir) { if (!is_dir($dir)) mkdir($dir, 0777, true); }
-    $root = getcwd();
-    mkdir_p($root . '/bootstrap/cache');
-    mkdir_p($root . '/storage/framework/cache');
-    mkdir_p($root . '/storage/framework/sessions');
-    mkdir_p($root . '/storage/framework/views');
-    @chmod($root . '/bootstrap/cache', 0777);
-    @chmod($root . '/storage', 0777);
-    @chmod($root . '/storage/framework', 0777);
-    @chmod($root . '/storage/framework/cache', 0777);
-    @chmod($root . '/storage/framework/sessions', 0777);
-    @chmod($root . '/storage/framework/views', 0777);
+<?php
+/**
+ * ensure-skeleton.php
+ *
+ * Creates minimal Laravel 11 skeleton files if missing:
+ *  - bootstrap/app.php
+ *  - public/index.php
+ *  - ensures bootstrap/cache directory exists
+ */
 
-    $bootstrapFile = $root . '/bootstrap/app.php';
-    if (!file_exists($bootstrapFile)) {
-        $routesWeb = file_exists($root.'/routes/web.php') ? "__DIR__.'/../routes/web.php'" : 'null';
-        $routesConsole = file_exists($root.'/routes/console.php') ? "__DIR__.'/../routes/console.php'" : 'null';
-        $appPhp = <<<'PHP'
-        <?php
-        use Illuminate\Foundation\Application;
-        use Illuminate\Foundation\Configuration\Exceptions;
-        use Illuminate\Foundation\Configuration\Middleware;
-        return Application::configure(basePath: dirname(__DIR__))
-            ->withRouting(
-                web: %WEB%,
-                commands: %CONSOLE%,
-                health: '/up',
-            )
-            ->withMiddleware(function (Middleware $middleware) {
-            })
-            ->withExceptions(function (Exceptions $exceptions) {
-            })->create();
-        PHP;
-        $appPhp = str_replace(['%WEB%', '%CONSOLE%'], [$routesWeb, $routesConsole], $appPhp);
-        file_put_contents($bootstrapFile, $appPhp);
-        echo "[ensure] Created bootstrap/app.php
-";
-    } else {
-        echo "[ensure] bootstrap/app.php already exists
-";
-    }
+$root = getcwd();
 
-    $publicIndex = $root . '/public/index.php';
-    if (!file_exists($publicIndex)) {
-        mkdir_p($root . '/public');
-        $indexPhp = <<<'PHP'
-        <?php
-        define('LARAVEL_START', microtime(true));
-        require __DIR__.'/../vendor/autoload.php';
-        $app = require_once __DIR__.'/../bootstrap/app.php';
-        $kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
-        $response = $kernel->handle($request = Illuminate\Http\Request::capture())->send();
-        $kernel->terminate($request, $response);
-        PHP;
-        file_put_contents($publicIndex, $indexPhp);
-        echo "[ensure] Created public/index.php
-";
-    } else {
-        echo "[ensure] public/index.php already exists
-";
-    }
-    echo "[ensure] Writable dirs ensured
-";
+$bootstrapDir = $root . '/bootstrap';
+$publicDir    = $root . '/public';
+$cacheDir     = $root . '/bootstrap/cache';
+
+if (!is_dir($bootstrapDir)) {
+    @mkdir($bootstrapDir, 0777, true);
+}
+if (!is_dir($publicDir)) {
+    @mkdir($publicDir, 0777, true);
+}
+if (!is_dir($cacheDir)) {
+    @mkdir($cacheDir, 0777, true);
+}
+
+// Laravel 11 default-ish bootstrap/app.php
+$bootstrapApp = <<<'PHP'
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+        // register global middleware here if needed
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
+        // customize exception rendering/handling here if needed
+    })
+    ->create();
+PHP;
+
+$bootstrapPath = $bootstrapDir . '/app.php';
+if (!file_exists($bootstrapPath)) {
+    file_put_contents($bootstrapPath, $bootstrapApp);
+    echo "[ensure] Created bootstrap/app.php" . PHP_EOL;
+} else {
+    echo "[ensure] bootstrap/app.php already exists" . PHP_EOL;
+}
+
+// public/index.php compatible with Laravel 11
+$publicIndex = <<<'PHP'
+<?php
+
+define('LARAVEL_START', microtime(true));
+
+require __DIR__.'/../vendor/autoload.php';
+
+$app = require_once __DIR__.'/../bootstrap/app.php';
+
+$app->handleRequest(
+    $request = Illuminate\Http\Request::capture()
+)->send();
+PHP;
+
+$publicIndexPath = $publicDir . '/index.php';
+if (!file_exists($publicIndexPath)) {
+    file_put_contents($publicIndexPath, $publicIndex);
+    echo "[ensure] Created public/index.php" . PHP_EOL;
+} else {
+    echo "[ensure] public/index.php already exists" . PHP_EOL;
+}
+
+// Ensure cache dir is writable
+@chmod($cacheDir, 0777);

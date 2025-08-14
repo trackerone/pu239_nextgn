@@ -1,22 +1,18 @@
 #!/bin/sh
 set -e
-if [ -f "artisan" ] && [ -f "composer.json" ]; then
-  pwd
+
+# Simple heuristics to find the Laravel root (where artisan lives)
+if [ -f "/app/artisan" ]; then
+  echo "/app"
   exit 0
 fi
-root=$(find . -maxdepth 3 -type f -name artisan -printf '%h\n' | while read d; do
-  if [ -f "$d/composer.json" ]; then
-    echo "$d"
-    break
-  fi
-done)
-if [ -z "$root" ]; then
-  c=$(find . -maxdepth 3 -type f -name composer.json -printf '%h\n' | head -n1)
-  if [ -n "$c" ]; then
-    echo "$c"
-    exit 0
-  fi
-  echo "."
+
+# search maxdepth to avoid traversing the whole tree in CI
+FOUND="$(find /app -maxdepth 2 -type f -name artisan | head -n 1 || true)"
+if [ -n "$FOUND" ]; then
+  echo "$(dirname "$FOUND")"
   exit 0
 fi
-echo "$root"
+
+# Fallback
+echo "/app"
