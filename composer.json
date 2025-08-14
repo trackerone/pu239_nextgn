@@ -22,5 +22,6 @@
       "@php artisan key:generate"
     ]
   },
-  "prefer-stable": true
+  "prefer-stable": true,
+  "minimum-stability": "stable"
 }
