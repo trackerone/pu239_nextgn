@@ -1,12 +1,23 @@
 <?php
 
-use Illuminate\Foundation\Application;
+declare(strict_types=1);
 
-require __DIR__.'/vendor/autoload.php';
+use Illuminate\Contracts\Console\Kernel as ConsoleKernel;
+use Symfony\Component\Console\Input\ArgvInput;
+use Symfony\Component\Console\Output\ConsoleOutput;
 
-Application::configure(basePath: __DIR__)
-    ->withCommands([
-        __DIR__.'/routes/console.php',
-    ])
-    ->createConsoleKernel()
-    ->run();
+require __DIR__ . '/vendor/autoload.php';
+
+$app = require __DIR__ . '/bootstrap/app.php';
+
+/** @var \Illuminate\Contracts\Console\Kernel $kernel */
+$kernel = $app->make(ConsoleKernel::class);
+
+$status = $kernel->handle(
+    $input = new ArgvInput(),
+    new ConsoleOutput()
+);
+
+$kernel->terminate($input, $status);
+
+exit($status);
