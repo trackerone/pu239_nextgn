@@ -1,5 +1,1 @@
-protected $middleware = [
-    // ...
-    \Illuminate\Http\Middleware\HandleCors::class,
-    // ...
-];
+
