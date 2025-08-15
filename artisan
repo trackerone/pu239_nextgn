@@ -1,17 +1,12 @@
-#!/usr/bin/env php
 <?php
+
+use Illuminate\Foundation\Application;
 
 require __DIR__.'/vendor/autoload.php';
 
-$app = require_once __DIR__.'/bootstrap/app.php';
-
-$kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
-
-$status = $kernel->handle(
-    $input = new Symfony\Component\Console\Input\ArgvInput,
-    new Symfony\Component\Console\Output\ConsoleOutput
-);
-
-$kernel->terminate($input, $status);
-
-exit($status);
+Application::configure(basePath: __DIR__)
+    ->withCommands([
+        __DIR__.'/routes/console.php',
+    ])
+    ->createConsoleKernel()
+    ->run();
