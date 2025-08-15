@@ -1,21 +1,12 @@
 <?php
 
-use Illuminate\Foundation\Application;
-use Illuminate\Foundation\Configuration\Exceptions;
-use Illuminate\Foundation\Configuration\Middleware;
+declare(strict_types=1);
 
-require __DIR__.'/../vendor/autoload.php';
+use Illuminate\Http\Request;
 
-Application::configure(basePath: dirname(__DIR__))
-    ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        commands: __DIR__.'/../routes/console.php',
-        health: '/up',
-    )
-    ->withMiddleware(function (Middleware $middleware) {
-        // Tilføj evt. middleware her
-    })
-    ->withExceptions(function (Exceptions $exceptions) {
-        //
-    })
-    ->run();
+require __DIR__ . '/../vendor/autoload.php';
+
+$app = require __DIR__ . '/../bootstrap/app.php';
+
+$response = $app->handleRequest(Request::capture());
+$response->send();
