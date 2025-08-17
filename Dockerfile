@@ -16,4 +16,5 @@ RUN sed -i 's/\r$//' /app/tools/entrypoint.sh
 RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader || true
 
 EXPOSE 10000
-CMD ["/app/tools/entrypoint.sh"]
+CMD ["sh","/app/tools/entrypoint.sh"]
+
