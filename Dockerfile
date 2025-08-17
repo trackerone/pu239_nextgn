@@ -9,6 +9,9 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 COPY . /app
 
+# Fjern evt. CRLF fra entrypoint-scriptet
+RUN sed -i 's/\r$//' /app/tools/entrypoint.sh
+
 # Hurtig sanity under build (ingen netværk ved runtime kræves)
 RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader || true
 
