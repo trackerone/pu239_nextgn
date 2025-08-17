@@ -4,7 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
-return Application::configure(basePath: dirname(__DIR__))
+$app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
         api: __DIR__.'/../routes/api.php',
@@ -12,12 +12,21 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        // Her kan du evt. tilføje/alias’e middleware.
-        // Eksempel (hvis du bruger fruitcake/php-cors):
-        // $middleware->alias(['cors' => \Fruitcake\Cors\HandleCors::class]);
-        // $middleware->append(\Fruitcake\Cors\HandleCors::class);
-    })
-    ->withExceptions(function (Exceptions $exceptions) {
         //
     })
+    ->withExceptions(function (Exceptions $exceptions) {
+        // Fallback så vi ikke forsøger at bruge view ved fejl,
+        // hvis view ikke skulle være registreret endnu:
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $e, $request) {
+            return response(
+                'HTTP '.$e->getStatusCode().' - '.$e->getMessage(),
+                $e->getStatusCode()
+            );
+        });
+    })
     ->create();
+
+// 🔽 TILFØJ DISSE 2 LINJER:
+$app->register(\Illuminate\View\ViewServiceProvider::class);
+
+return $app;
