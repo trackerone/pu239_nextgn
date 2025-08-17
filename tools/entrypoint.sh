@@ -1,28 +1,20 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/sh
+set -eu
 
-ROOT="/app"
-cd "$ROOT"
+cd /app
 
-# Installer dependencies (prod)
-if [ ! -d "vendor" ]; then
-  composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
-else
-  composer dump-autoload -o
+# Lav .env hvis den mangler (failer ikke hvis .env.example ikke findes)
+if [ ! -f .env ] && [ -f .env.example ]; then
+  cp .env.example .env || true
 fi
 
-# .env + APP_KEY
-if [ ! -f ".env" ] && [ -f ".env.example" ]; then
-  cp .env.example .env
-fi
+# Laravel nøglen (failer ikke hvis allerede sat)
 php artisan key:generate --force || true
 
-# Cache/links
-php artisan storage:link || true
-php artisan config:clear || true
-php artisan route:clear || true
-php artisan view:clear || true
+# (Valgfrit men nyttigt) cache ting – ignorer fejl hvis miljøet ikke er helt klart endnu
+php artisan config:cache || true
+php artisan route:cache || true
+php artisan view:cache || true
 
-# Kør PHP’s indbyggede server (Render sætter $PORT)
-PORT="${PORT:-10000}"
-exec php -S 0.0.0.0:"$PORT" -t public
+# Start den indbyggede PHP server på Render’s PORT (fallback 10000)
+php -S 0.0.0.0:${PORT:-10000} -t public
