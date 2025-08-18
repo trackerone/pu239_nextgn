@@ -1,30 +1,20 @@
 <?php
 
-use Illuminate\Support\Facades\Facade;
-use Illuminate\Support\ServiceProvider;
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
 
-return [
-    'name' => env('APP_NAME', 'Laravel'),
-    'env' => env('APP_ENV', 'production'),
-    'debug' => (bool) env('APP_DEBUG', false),
-
-    'url' => env('APP_URL', 'http://localhost'),
-    'asset_url' => env('ASSET_URL'),
-
-    'timezone' => env('APP_TIMEZONE', 'UTC'),
-    'locale' => env('APP_LOCALE', 'en'),
-    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
-    'faker_locale' => 'en_US',
-
-    'key' => env('APP_KEY'),
-    'cipher' => 'AES-256-CBC',
-
-    // VIGTIGT: registrerer bl.a. View- og Filesystem-serviceproviders
-    'providers' => ServiceProvider::defaultProviders()->merge([
-        // Egne providers kan tilføjes her
-    ])->toArray(),
-
-    'aliases' => Facade::defaultAliases()->merge([
-        // Egne aliaser kan tilføjes her
-    ])->toArray(),
-];
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware) {
+        //
+    })
+    ->withExceptions(function (Exceptions $exceptions) {
+        //
+    })
+    ->create();
