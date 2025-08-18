@@ -1,1 +1,6 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+
 Route::get('/', fn () => 'OK');
+Route::get('/ping', fn () => 'pong');
