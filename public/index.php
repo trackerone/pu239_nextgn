@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 // --- runtime fixes for Render/Docker ---
 // Brug /tmp som system-temp hvis ikke sat
 if (!ini_get('sys_temp_dir')) {
@@ -38,8 +39,6 @@ foreach ($cacheFiles as $file) {
     }
 }
 // --- end: force clear ---
-
-declare(strict_types=1);
 
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
