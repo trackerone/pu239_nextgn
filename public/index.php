@@ -18,7 +18,6 @@ foreach ($cacheFiles as $file) {
     }
 }
 // --- end: force clear ---
-<?php
 
 declare(strict_types=1);
 
