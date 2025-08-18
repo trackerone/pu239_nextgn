@@ -1,90 +1,39 @@
 <?php
 
+use Illuminate\Support\Facades\Facade;
+use Illuminate\Support\ServiceProvider;
+
 return [
 
-    /*
-    |--------------------------------------------------------------------------
-    | Application Name
-    |--------------------------------------------------------------------------
-    */
     'name' => env('APP_NAME', 'Laravel'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Application Environment
-    |--------------------------------------------------------------------------
-    */
     'env' => env('APP_ENV', 'production'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Application Debug Mode
-    |--------------------------------------------------------------------------
-    */
     'debug' => (bool) env('APP_DEBUG', false),
 
-    /*
-    |--------------------------------------------------------------------------
-    | Application URL
-    |--------------------------------------------------------------------------
-    */
     'url' => env('APP_URL', 'http://localhost'),
     'asset_url' => env('ASSET_URL'),
 
-    /*
-    |--------------------------------------------------------------------------
-    | Timezone & Locale
-    |--------------------------------------------------------------------------
-    */
     'timezone' => env('APP_TIMEZONE', 'UTC'),
     'locale' => env('APP_LOCALE', 'en'),
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
-    'faker_locale' => env('FAKER_LOCALE', 'en_US'),
+    'faker_locale' => 'en_US',
 
-    /*
-    |--------------------------------------------------------------------------
-    | Encryption Key
-    |--------------------------------------------------------------------------
-    */
+    'key' => env('APP_KEY'),
     'cipher' => 'AES-256-CBC',
 
     /*
     |--------------------------------------------------------------------------
-    | Maintenance Mode
+    | Providers & Aliases (Laravel 11 defaults)
     |--------------------------------------------------------------------------
+    | Disse to linjer er vigtige. De tilføjer alle kerneproviders
+    | (bl.a. ViewServiceProvider og FilesystemServiceProvider),
+    | samt standard-facade aliaser.
     */
-    'maintenance' => [
-        'driver' => 'file',
-        'store' => null,
-    ],
+    'providers' => ServiceProvider::defaultProviders()->merge([
+        // Tilføj dine egne providers her, hvis du får brug for det.
+        // App\Providers\AppServiceProvider::class,
+    ])->toArray(),
 
-    /*
-    |--------------------------------------------------------------------------
-    | Autoloaded Service Providers
-    |--------------------------------------------------------------------------
-    */
-    'providers' => [
-        /*
-         * Package Service Providers...
-         */
-
-        /*
-         * Application Service Providers...
-         */
-        App\Providers\AppServiceProvider::class,
-        App\Providers\AuthServiceProvider::class,
-        // App\Providers\BroadcastServiceProvider::class,
-        App\Providers\EventServiceProvider::class,
-        App\Providers\RouteServiceProvider::class,
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Class Aliases
-    |--------------------------------------------------------------------------
-    */
-    'aliases' => [
-        // tomt er fint i Laravel 11
-    ],
-
+    'aliases' => Facade::defaultAliases()->merge([
+        // Evt. egne aliaser her.
+    ])->toArray(),
 ];
