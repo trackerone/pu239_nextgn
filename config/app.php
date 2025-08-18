@@ -2,65 +2,22 @@
 declare(strict_types=1);
 
 return [
-
-    /*
-    |--------------------------------------------------------------------------
-    | Application Name
-    |--------------------------------------------------------------------------
-    */
     'name' => env('APP_NAME', 'Laravel'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Application Environment
-    |--------------------------------------------------------------------------
-    */
     'env' => env('APP_ENV', 'production'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Application Debug Mode
-    |--------------------------------------------------------------------------
-    */
     'debug' => (bool) env('APP_DEBUG', false),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Application URL
-    |--------------------------------------------------------------------------
-    */
     'url' => env('APP_URL', 'https://pu239-nextgn.onrender.com'),
     'asset_url' => env('ASSET_URL'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Timezone & Locale
-    |--------------------------------------------------------------------------
-    */
     'timezone' => env('APP_TIMEZONE', 'UTC'),
-    'locale'   => env('APP_LOCALE', 'en'),
+    'locale' => env('APP_LOCALE', 'en'),
     'fallback_locale' => 'en',
     'faker_locale' => 'en_US',
 
-    /*
-    |--------------------------------------------------------------------------
-    | Maintenance Mode
-    |--------------------------------------------------------------------------
-    */
     'maintenance' => [
         'driver' => 'file',
         // 'store' => 'redis',
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Autoloaded Service Providers
-    |--------------------------------------------------------------------------
-    */
     'providers' => [
-        /*
-         * Laravel Framework Service Providers...
-         */
         Illuminate\Auth\AuthServiceProvider::class,
         Illuminate\Broadcasting\BroadcastServiceProvider::class,
         Illuminate\Bus\BusServiceProvider::class,
@@ -84,25 +41,10 @@ return [
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
 
-        /*
-         * Package Service Providers...
-         */
-
-        /*
-         * Application Service Providers...
-         */
         App\Providers\AppServiceProvider::class,
-        // App\Providers\AuthServiceProvider::class,
-        // App\Providers\BroadcastServiceProvider::class,
-        // App\Providers\EventServiceProvider::class,
-        // App\Providers\RouteServiceProvider::class,
+        // App\Providers\RouteServiceProvider::class, // valgfri i L11 hvis du bruger default routes
     ],
 
-    /*
-    |--------------------------------------------------------------------------
-    | Class Aliases
-    |--------------------------------------------------------------------------
-    */
     'aliases' => [
         'App'        => Illuminate\Support\Facades\App::class,
         'Arr'        => Illuminate\Support\Arr::class,
@@ -144,5 +86,4 @@ return [
         'Validator'  => Illuminate\Support\Facades\Validator::class,
         'View'       => Illuminate\Support\Facades\View::class,
     ],
-
 ];
