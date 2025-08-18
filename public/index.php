@@ -1,4 +1,24 @@
 <?php
+// --- runtime fixes for Render/Docker ---
+// Brug /tmp som system-temp hvis ikke sat
+if (!ini_get('sys_temp_dir')) {
+    @ini_set('sys_temp_dir', '/tmp');
+}
+
+// Sikr Laravel-mapper findes (ellers advarer tempnam)
+$dirs = [
+    __DIR__ . '/../storage/framework/cache',
+    __DIR__ . '/../storage/framework/sessions',
+    __DIR__ . '/../storage/framework/views',
+    __DIR__ . '/../bootstrap/cache',
+];
+
+foreach ($dirs as $d) {
+    if (!is_dir($d)) {
+        @mkdir($d, 0777, true);
+    }
+}
+// --- end runtime fixes ---
 // --- Force clear Laravel caches in immutable deploy envs (Render) ---
 $cacheFiles = [
     __DIR__ . '/../bootstrap/cache/config.php',
