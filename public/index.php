@@ -10,12 +10,26 @@ define('LARAVEL_START', microtime(true));
 require __DIR__.'/../vendor/autoload.php';
 
 $app = require __DIR__.'/../bootstrap/app.php';
+/*
+|--------------------------------------------------------------------------
+| Debug override (midlertidig)
+|--------------------------------------------------------------------------
+| Denne blok fanger alle exceptions og viser rå besked + fil + linje.
+| Fjern den igen, når fejlen er fundet!
+*/
+set_exception_handler(function (Throwable $e) {
+    http_response_code(500);
+    header('Content-Type: text/plain');
+    echo "ERR: " . $e->getMessage() . "\n";
+    echo $e->getFile() . ":" . $e->getLine() . "\n";
+    echo $e->getTraceAsString();
+    exit(1);
+});
 
-/** @var \Illuminate\Contracts\Http\Kernel $kernel */
-$kernel = $app->make(Kernel::class);
+$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
 
 $response = $kernel->handle(
-    $request = Request::capture()
+    $request = Illuminate\Http\Request::capture()
 );
 
 $response->send();
