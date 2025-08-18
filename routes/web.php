@@ -2,4 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => 'OK');
+Route::get('/', function () {
+    return 'OK / alive';
+});
