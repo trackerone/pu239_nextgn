@@ -1,4 +1,24 @@
 <?php
+// --- Force clear Laravel caches in immutable deploy envs (Render) ---
+$cacheFiles = [
+    __DIR__ . '/../bootstrap/cache/config.php',
+    __DIR__ . '/../bootstrap/cache/packages.php',
+    __DIR__ . '/../bootstrap/cache/services.php',
+    __DIR__ . '/../bootstrap/cache/events.php',
+];
+
+// Remove all route cache variants (routes-v7.php, etc.)
+foreach (glob(__DIR__ . '/../bootstrap/cache/routes-*.php') ?: [] as $routeCache) {
+    @unlink($routeCache);
+}
+
+foreach ($cacheFiles as $file) {
+    if (is_file($file)) {
+        @unlink($file);
+    }
+}
+// --- end: force clear ---
+<?php
 
 declare(strict_types=1);
 
