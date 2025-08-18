@@ -1,53 +1,23 @@
 <?php
 declare(strict_types=1);
-// --- runtime fixes for Render/Docker ---
-// Brug /tmp som system-temp hvis ikke sat
-if (!ini_get('sys_temp_dir')) {
-    @ini_set('sys_temp_dir', '/tmp');
-}
-
-// Sikr Laravel-mapper findes (ellers advarer tempnam)
-$dirs = [
-    __DIR__ . '/../storage/framework/cache',
-    __DIR__ . '/../storage/framework/sessions',
-    __DIR__ . '/../storage/framework/views',
-    __DIR__ . '/../bootstrap/cache',
-];
-
-foreach ($dirs as $d) {
-    if (!is_dir($d)) {
-        @mkdir($d, 0777, true);
-    }
-}
-// --- end runtime fixes ---
-// --- Force clear Laravel caches in immutable deploy envs (Render) ---
-$cacheFiles = [
-    __DIR__ . '/../bootstrap/cache/config.php',
-    __DIR__ . '/../bootstrap/cache/packages.php',
-    __DIR__ . '/../bootstrap/cache/services.php',
-    __DIR__ . '/../bootstrap/cache/events.php',
-];
-
-// Remove all route cache variants (routes-v7.php, etc.)
-foreach (glob(__DIR__ . '/../bootstrap/cache/routes-*.php') ?: [] as $routeCache) {
-    @unlink($routeCache);
-}
-
-foreach ($cacheFiles as $file) {
-    if (is_file($file)) {
-        @unlink($file);
-    }
-}
-// --- end: force clear ---
 
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
 
-define('LARAVEL_START', microtime(true));
+require __DIR__ . '/../vendor/autoload.php';
 
-require __DIR__.'/../vendor/autoload.php';
+$app = require_once __DIR__ . '/../bootstrap/app.php';
 
-$app = require __DIR__.'/../bootstrap/app.php';
+/** @var \Illuminate\Contracts\Http\Kernel $kernel */
+$kernel = $app->make(Kernel::class);
+
+$response = $kernel->handle(
+    $request = Request::capture()
+);
+
+$response->send();
+
+$kernel->terminate($request, $response);
 /*
 |--------------------------------------------------------------------------
 | Debug override (midlertidig)
