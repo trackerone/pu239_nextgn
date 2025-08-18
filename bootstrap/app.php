@@ -28,5 +28,10 @@ $app = Application::configure(basePath: dirname(__DIR__))
 
 // 🔽 TILFØJ DISSE 2 LINJER:
 $app->register(\Illuminate\View\ViewServiceProvider::class);
+// Sørg for at 'files' findes før view registreres
+$app->register(\Illuminate\Filesystem\FilesystemServiceProvider::class);
+
+// (hvis ikke allerede tilføjet) registrér view
+$app->register(\Illuminate\View\ViewServiceProvider::class);
 
 return $app;
