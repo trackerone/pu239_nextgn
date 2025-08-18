@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ServiceProvider;
 
 return [
-
     'name' => env('APP_NAME', 'Laravel'),
     'env' => env('APP_ENV', 'production'),
     'debug' => (bool) env('APP_DEBUG', false),
@@ -20,20 +19,12 @@ return [
     'key' => env('APP_KEY'),
     'cipher' => 'AES-256-CBC',
 
-    /*
-    |--------------------------------------------------------------------------
-    | Providers & Aliases (Laravel 11 defaults)
-    |--------------------------------------------------------------------------
-    | Disse to linjer er vigtige. De tilføjer alle kerneproviders
-    | (bl.a. ViewServiceProvider og FilesystemServiceProvider),
-    | samt standard-facade aliaser.
-    */
+    // VIGTIGT: registrerer bl.a. View- og Filesystem-serviceproviders
     'providers' => ServiceProvider::defaultProviders()->merge([
-        // Tilføj dine egne providers her, hvis du får brug for det.
-        // App\Providers\AppServiceProvider::class,
+        // Egne providers kan tilføjes her
     ])->toArray(),
 
     'aliases' => Facade::defaultAliases()->merge([
-        // Evt. egne aliaser her.
+        // Egne aliaser kan tilføjes her
     ])->toArray(),
 ];
