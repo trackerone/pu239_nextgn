@@ -1,20 +1,25 @@
 <?php
-declare(strict_types=1);
 
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\View\ViewServiceProvider;
+use Illuminate\Filesystem\FilesystemServiceProvider;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__ . '/../routes/web.php',
-        commands: __DIR__ . '/../routes/console.php',
+        web: __DIR__.'/../routes/web.php',
+        commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withProviders([
+        FilesystemServiceProvider::class,
+        ViewServiceProvider::class,
+    ])
     ->withMiddleware(function (Middleware $middleware) {
-        // Global / route middleware kan registreres her ved behov.
+        // ...
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        // Custom exception handling kan sættes her ved behov.
+        // behold gerne din nuværende, men ingen ekstra response()-logik her
     })
     ->create();
