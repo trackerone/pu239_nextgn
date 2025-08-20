@@ -23,13 +23,14 @@ RUN [ -d /app/overlay ] && cp -R /app/overlay/* /app/ || true
 ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
-# Forbered writeable dirs (ingen artisan-kommandoer i build!)
-RUN mkdir -p storage/framework/cache \
-    && mkdir -p storage/framework/views \
-    && mkdir -p storage/framework/sessions \
-    && mkdir -p bootstrap \
-    && mkdir -p bootstrap/cache \
-    && chmod -R 0777 storage bootstrap || true
+# Forbered writeable dirs – selvheal hvis 'bootstrap/cache' er file
+RUN set -eu; \
+    ensure_dir() { p="$1"; if [ -e "$p" ] && [ ! -d "$p" ]; then rm -f "$p"; fi; mkdir -p "$p"; }; \
+    ensure_dir storage/framework/cache; \
+    ensure_dir storage/framework/views; \
+    ensure_dir storage/framework/sessions; \
+    ensure_dir bootstrap/cache; \
+    chmod -R 0777 storage bootstrap || true
 
 
 # (Valgfrit) PHP-ini
@@ -41,3 +42,4 @@ EXPOSE 10000
 
 # Runtime sker i entrypoint
 CMD ["sh","/app/tools/entrypoint.sh"]
+
