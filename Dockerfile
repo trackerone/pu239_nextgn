@@ -23,9 +23,14 @@ RUN [ -d /app/overlay ] && cp -R /app/overlay/* /app/ || true
 ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 
-# Forbered writeable dirs (men ingen artisan-kommandoer i build!)
-RUN mkdir -p storage/framework/{cache,views,sessions} bootstrap/cache \
- && chmod -R 0777 storage bootstrap/cache
+# Forbered writeable dirs (ingen artisan-kommandoer i build!)
+RUN mkdir -p storage/framework/cache \
+    && mkdir -p storage/framework/views \
+    && mkdir -p storage/framework/sessions \
+    && mkdir -p bootstrap \
+    && mkdir -p bootstrap/cache \
+    && chmod -R 0777 storage bootstrap || true
+
 
 # (Valgfrit) PHP-ini
 # COPY tools/php.ini /usr/local/etc/php/conf.d/zzz-custom.ini
